@@ -5,9 +5,20 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class Funcoes {
+public class SqlUtil {
 
-    public static int testeUpdate(String tabela, int id, String[] colunas, Object[] valores) {
+    Connection conn;
+
+    public SqlUtil(String HOST, String PORTA, String BANCO, String USUARIO, String SENHA) {
+        try {
+            conn = DriverManager.getConnection(
+                    "jdbc:postgresql://" + HOST + ":" + PORTA + "/" + BANCO, USUARIO, SENHA);
+        } catch (SQLException ex) {
+            throw new RuntimeException("Não foi possivel estabelecer uma conexao com o Banco de Dados!", ex);
+        }
+    }
+
+    public int update(String tabela, int id, String[] colunas, Object[] valores) {
         StringBuilder VALORES = new StringBuilder();
 
         for (int i = 0; i < colunas.length; i++) {
@@ -31,8 +42,7 @@ public class Funcoes {
                 tabela, VALORES.toString(), id);
 
         // auto close connection and preparedStatement
-        try (Connection conn = DriverManager.getConnection(
-                "jdbc:postgresql://localhost:18745/BANCO", "USUARIO", "SENHA"); PreparedStatement preparedStatement = conn.prepareStatement(SQL_SELECT)) {
+        try (PreparedStatement preparedStatement = conn.prepareStatement(SQL_SELECT)) {
 
             return preparedStatement.executeUpdate();
         } catch (SQLException e) {
@@ -46,7 +56,7 @@ public class Funcoes {
         }
     }
 
-    public static int testeInsert(String tabela, int id, String[] colunas, Object[] valores) {
+    public int insert(String tabela, String[] colunas, Object[] valores) {
         StringBuilder COLUNAS = new StringBuilder();
         StringBuilder VALORES = new StringBuilder();
 
@@ -74,13 +84,11 @@ public class Funcoes {
             }
         }
 
-        String SQL_SELECT = String.format(
-                "INSERT INTO %s (%s) VALUES (%s) WHERE id=%s;",
-                tabela, COLUNAS, VALORES, id);
+        String SQL_SELECT = "INSERT INTO " + tabela
+                + " (" + COLUNAS.toString() + ") VALUES (" + VALORES.toString() + ");";
 
         // auto close connection and preparedStatement
-        try (Connection conn = DriverManager.getConnection(
-                "jdbc:postgresql://localhost:18745/BANCO", "USUARIO", "SENHA"); PreparedStatement preparedStatement = conn.prepareStatement(SQL_SELECT)) {
+        try (PreparedStatement preparedStatement = conn.prepareStatement(SQL_SELECT)) {
 
             return preparedStatement.executeUpdate();
         } catch (SQLException e) {
@@ -94,13 +102,12 @@ public class Funcoes {
         }
     }
 
-    public static int testeDelete(String tabela, int id) {
+    public int delete(String tabela, int id) {
         String SQL_SELECT = String.format(
                 "DELETE FROM %s WHERE id=%d;", tabela, id);
 
         // auto close connection and preparedStatement
-        try (Connection conn = DriverManager.getConnection(
-                "jdbc:postgresql://localhost:18745/BANCO", "USUARIO", "SENHA"); PreparedStatement preparedStatement = conn.prepareStatement(SQL_SELECT)) {
+        try (PreparedStatement preparedStatement = conn.prepareStatement(SQL_SELECT)) {
 
             return preparedStatement.executeUpdate();
         } catch (SQLException e) {
