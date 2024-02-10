@@ -120,4 +120,17 @@ public class SqlUtil {
 
         }
     }
+    
+    public int rowCount(String tabela){
+        String SQL_SELECT = String.format("SELECT * FROM %s;", tabela);
+        try (PreparedStatement preparedStatement = conn.prepareStatement(SQL_SELECT)){
+            return preparedStatement.executeUpdate();            
+        } catch (SQLException e) {
+            System.err.printf("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+            return 0;
+        } catch (Exception e){
+            e.printStackTrace();
+            return 0;
+        }
+    }
 }
